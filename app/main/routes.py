@@ -61,7 +61,8 @@ def playlists():
     response = requests.get(API_BASE_URL + 'me/playlists', headers=headers)
     playlists = response.json()
 
-    return jsonify(playlists)
+    # return playlists
+    return render_template('playlists.html', playlists = playlists['items'])
 
 @bp_main.route('/refresh-token', methods=['GET'])
 def refresh_token():
@@ -79,4 +80,4 @@ def refresh_token():
         session['access_token'] = new_token_info['access_token']
         session['expires_at'] = datetime.now().timestamp() + new_token_info['expires_in']
 
-        return redirect(url_for('main.playlists'))
+        return redirect(url_for('main.index'))

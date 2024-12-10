@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Your Playlists</h1>
+
+    {% for playlist in playlists %}
+        {% include '_playlist.html' %}
+    {%endfor%}
+{% endblock %}

@@ -14,9 +14,6 @@ CLIENT_ID = os.environ.get('CLIENT_ID')
 REDIRECT_URI = os.environ.get('REDIRECT_URI')
 AUTH_URL = os.environ.get('AUTH_URL') 
 
-
-
-print(CLIENT_ID)
 @bp_auth.route('/login')
 def login():
     scope = 'user-read-private user-read-email'
