@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import wraps
 import sys
 from flask import render_template, flash, redirect, url_for, request, jsonify, session
 import sqlalchemy as sqla
@@ -17,6 +18,15 @@ AUTH_URL = os.environ.get('AUTH_URL')
 TOKEN_URL = os.environ.get('TOKEN_URL') 
 API_BASE_URL = os.environ.get('API_BASE_URL') 
 
+def token(func):
+    @wraps(func)
+    def p(*args, **kwargs):
+        if 'access_token' not in session:
+            return redirect(url_for('auth.login'))
+        if datetime.now().timestamp() >= session['expires_at']:
+            return redirect(url_for('main.refresh_token'))
+        return func(*args, **kwargs)
+    return p
 
 @bp_main.route('/', methods=['GET'])
 @bp_main.route('/index', methods=['GET'])
@@ -46,13 +56,13 @@ def callback():
 
     return redirect(url_for('main.playlists'))
 
-
+@token
 @bp_main.route('/playlists', methods=['GET'])
 def playlists():
-    if 'access_token' not in session:
-        return redirect(url_for('auth.login'))
-    if datetime.now().timestamp() >= session['expires_at']:
-        return redirect(url_for('main.refresh_token'))
+    # if 'access_token' not in session:
+    #     return redirect(url_for('auth.login')) TODO Uncomment if error
+    # if datetime.now().timestamp() >= session['expires_at']:
+    #     return redirect(url_for('main.refresh_token'))
     
     headers = {
         'Authorization' : f"Bearer {session['access_token']}"
@@ -61,8 +71,25 @@ def playlists():
     response = requests.get(API_BASE_URL + 'me/playlists', headers=headers)
     playlists = response.json()
 
-    # return playlists
+    # return jsonify(playlists)
     return render_template('playlists.html', playlists = playlists['items'])
+@token
+@bp_main.route('/artists/top', methods=['GET'])
+def top_artists():
+    # if 'access_token' not in session:
+    #     return redirect(url_for('auth.login')) TODO Uncomment if error
+    # if datetime.now().timestamp() >= session['expires_at']:
+    #     return redirect(url_for('main.refresh_token'))
+    
+    headers = {
+        'Authorization' : f"Bearer {session['access_token']}"
+    }
+    print("hi")
+    response = requests.get(API_BASE_URL + 'me/top/artists', headers=headers)
+    artists = response.json()
+    print(artists)
+    return jsonify(artists)
+    return render_template('index.html')
 
 @bp_main.route('/refresh-token', methods=['GET'])
 def refresh_token():
